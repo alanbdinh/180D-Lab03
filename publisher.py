@@ -1,17 +1,15 @@
 import paho.mqtt.client as mqtt
-import numpy as np
-import asyncio
-# 0. define callbacks - functions that run when events happen.
+
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
 	for i in range(10):
 		client.publish(topic = 'aland', payload = i, qos=1)
 		print('pub loop #' + str(i) + '\n')
+	#client.disconnect()
 # Subscribing in on_connect() means that if we lose the connection and
 # reconnect then subscriptions will be renewed.
-# client.subscribe("aland")
-# The callback of the client when it disconnects.
+
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
 		print('Unexpected Disconnect')
@@ -19,29 +17,14 @@ def on_disconnect(client, userdata, rc):
 		print('Expected Disconnect')
 # The default message callback.
 # (won’t be used if only publishing, but can still exist)
-def on_message(client, userdata, message):
-	print('Received message: "' + str(message.payload) + '" on topic "' + message.topic + '" with QoS ' + str(message.qos))
-# 1. create a client instance.
+def on_publish(client, userdata, mid):
+	print('Published message with ID %i' % mid)
+
 client = mqtt.Client()
-# add additional client options (security, certifications, etc.)
-# many default options should be good to start off.
-# add callbacks to client.
+
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.on_message = on_message
-# 2. connect to a broker using one of the connect*() functions.
+client.on_publish = on_publish
+
 client.connect('mqtt.eclipseprojects.io', 1883, 5)
-# 3. call one of the loop*() functions to maintain network traffic flow with the broker.
 client.loop_forever()
-#client.loop_start()
-# 4. use subscribe() to subscribe to a topic and receive messages.
-# 5. use publish() to publish messages to the broker.
-# payload must be a string, bytearray, int, float or None.
-# asyncio.sleep(2) #allow CONNACK time to come back from broker
-# the below loop often runs before connection state 0 is given
-# for i in range(10):
-	# client.publish(topic = 'aland', payload = i, qos=1)
-	# print('pub loop #' + str(i) + '\n')
-# 6. use disconnect() to disconnect from the broker.
-#client.loop_stop()
-#client.disconnect()
